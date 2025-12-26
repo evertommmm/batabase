@@ -16,6 +16,19 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ============================================
+// SCRIPT DE MIGRAÇÃO AUTOMÁTICA (HWID)
+// ============================================
+db.serialize(() => {
+    db.run("ALTER TABLE keys ADD COLUMN hwid TEXT", (err) => {
+        if (err) {
+            console.log("[NEXUS] Coluna HWID já existe ou banco é novo.");
+        } else {
+            console.log("[NEXUS] SUCESSO: Coluna HWID adicionada ao banco de dados!");
+        }
+    });
+});
+
+// ============================================
 // MIDDLEWARE DE AUTENTICAÇÃO ADMIN
 // ============================================
 const authAdmin = (req, res, next) => {
