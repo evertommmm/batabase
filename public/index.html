@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Alt - Painel de Administração</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">🔑</div>
+                <h1>Nexus Alt</h1>
+            </div>
+            
+            <nav class="menu">
+                <a href="#dashboard" class="menu-item active" data-page="dashboard">
+                    <span class="icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#chaves" class="menu-item" data-page="chaves">
+                    <span class="icon">🔐</span>
+                    <span>Chaves</span>
+                </a>
+                <a href="#criar" class="menu-item" data-page="criar">
+                    <span class="icon">➕</span>
+                    <span>Criar Chave</span>
+                </a>
+                <a href="#registros" class="menu-item" data-page="registros">
+                    <span class="icon">📝</span>
+                    <span>Registros</span>
+                </a>
+                <a href="#configuracoes" class="menu-item" data-page="configuracoes">
+                    <span class="icon">⚙️</span>
+                    <span>Configurações</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">👤</div>
+                    <div class="user-details">
+                        <p class="user-name">Admin</p>
+                        <p class="user-status">Online</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <h2 id="page-title">Dashboard</h2>
+                </div>
+                <div class="header-right">
+                    <div class="search-box">
+                        <input type="text" placeholder="Pesquisar..." id="search-input">
+                        <span class="search-icon">🔍</span>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn-icon" title="Notificações">🔔</button>
+                        <button class="btn-icon" title="Sair" onclick="logout()">🚪</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <div class="content">
+                <!-- Dashboard Page -->
+                <div id="dashboard-page" class="page active">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">🔑</div>
+                            <div class="stat-content">
+                                <p class="stat-label">Chaves Totais</p>
+                                <h3 class="stat-value" id="total-chaves">0</h3>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">✅</div>
+                            <div class="stat-content">
+                                <p class="stat-label">Chaves Ativas</p>
+                                <h3 class="stat-value" id="chaves-ativas">0</h3>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">❌</div>
+                            <div class="stat-content">
+                                <p class="stat-label">Chaves Inativas</p>
+                                <h3 class="stat-value" id="chaves-inativas">0</h3>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🚫</div>
+                            <div class="stat-content">
+                                <p class="stat-label">Chaves Banidas</p>
+                                <h3 class="stat-value" id="chaves-banidas">0</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="charts-grid">
+                        <div class="chart-container">
+                            <h3>Status das Chaves</h3>
+                            <canvas id="chart-status"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3>Autenticações Hoje</h3>
+                            <canvas id="chart-auth"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chaves Page -->
+                <div id="chaves-page" class="page">
+                    <div class="page-header">
+                        <h3>Gerenciar Chaves</h3>
+                        <button class="btn btn-primary" onclick="goToPage('criar')">+ Nova Chave</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Chave</th>
+                                    <th>Usuário</th>
+                                    <th>Status</th>
+                                    <th>Usos</th>
+                                    <th>Criada em</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="chaves-table-body">
+                                <tr><td colspan="6" class="text-center">Carregando...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Criar Chave Page -->
+                <div id="criar-page" class="page">
+                    <div class="page-header">
+                        <h3>Criar Nova Chave</h3>
+                    </div>
+                    <form class="form-container" onsubmit="criarChave(event)">
+                        <div class="form-group">
+                            <label>ID do Usuário</label>
+                            <input type="text" id="form-id-usuario" placeholder="Ex: usuario123">
+                        </div>
+                        <div class="form-group">
+                            <label>Máximo de Usos</label>
+                            <input type="number" id="form-max-usos" placeholder="Ex: 100 (deixe em branco para ilimitado)" min="-1">
+                        </div>
+                        <div class="form-group">
+                            <label>Expira em (dias)</label>
+                            <input type="number" id="form-expira-dias" placeholder="Ex: 30 (deixe em branco para nunca expirar)" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Descrição</label>
+                            <textarea id="form-descricao" placeholder="Descrição da chave" rows="4"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Senha de Admin</label>
+                            <input type="password" id="form-senha-admin" placeholder="Digite a senha de admin" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Criar Chave</button>
+                    </form>
+                </div>
+
+                <!-- Registros Page -->
+                <div id="registros-page" class="page">
+                    <div class="page-header">
+                        <h3>Registros de Atividade</h3>
+                        <button class="btn btn-secondary" onclick="atualizarRegistros()">🔄 Atualizar</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Ação</th>
+                                    <th>Chave</th>
+                                    <th>Status</th>
+                                    <th>IP</th>
+                                    <th>Data/Hora</th>
+                                </tr>
+                            </thead>
+                            <tbody id="registros-table-body">
+                                <tr><td colspan="5" class="text-center">Carregando...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Configurações Page -->
+                <div id="configuracoes-page" class="page">
+                    <div class="page-header">
+                        <h3>Configurações</h3>
+                    </div>
+                    <div class="settings-container">
+                        <div class="setting-group">
+                            <h4>Segurança</h4>
+                            <div class="setting-item">
+                                <label>Alterar Senha de Admin</label>
+                                <input type="password" id="nova-senha" placeholder="Nova senha">
+                                <button class="btn btn-secondary" onclick="alterarSenha()">Salvar</button>
+                            </div>
+                        </div>
+                        <div class="setting-group">
+                            <h4>API</h4>
+                            <div class="setting-item">
+                                <label>URL da API</label>
+                                <input type="text" id="api-url" value="http://localhost:3000" readonly>
+                                <button class="btn btn-secondary" onclick="copiarUrl()">Copiar</button>
+                            </div>
+                        </div>
+                        <div class="setting-group">
+                            <h4>Informações do Sistema</h4>
+                            <div class="info-box">
+                                <p><strong>Versão:</strong> 1.0.0</p>
+                                <p><strong>Banco de Dados:</strong> SQLite</p>
+                                <p><strong>Ambiente:</strong> <span id="ambiente">development</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de Confirmação -->
+    <div id="modal-confirmacao" class="modal">
+        <div class="modal-content">
+            <h3>Confirmar Ação</h3>
+            <p id="modal-mensagem"></p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="fecharModal()">Cancelar</button>
+                <button class="btn btn-danger" id="modal-confirmar" onclick="confirmarAcao()">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast de Notificação -->
+    <div id="toast" class="toast"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>

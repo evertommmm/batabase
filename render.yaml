@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: nexus-alt-api
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: ADMIN_PASSWORD
+        value: admin123456
+      - key: DATABASE_PATH
+        value: /tmp/nexus_alt.db
