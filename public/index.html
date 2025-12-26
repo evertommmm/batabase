@@ -7,61 +7,89 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background-color: #0f172a; color: #e2e8f0; }
+        body { background-color: #0f172a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
         .card { background-color: #1e293b; border: 1px solid #334155; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); }
+        #login-screen { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; background: #0f172a; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body class="p-4 md:p-8">
-    <div class="max-w-6xl mx-auto">
+    <!-- Tela de Login -->
+    <div id="login-screen">
+        <div class="card p-8 rounded-2xl w-full max-w-md shadow-2xl border-blue-500/30">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-black text-blue-500 mb-2">NEXUS PRO</h1>
+                <p class="text-gray-400">Painel Administrativo</p>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Senha de Acesso</label>
+                    <input type="password" id="admin-pass-input" placeholder="••••••••" 
+                        class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 outline-none focus:border-blue-500 transition">
+                </div>
+                <button onclick="attemptLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition transform active:scale-95">
+                    Entrar no Sistema
+                </button>
+                <p id="login-error" class="text-red-500 text-sm text-center hidden">Senha incorreta. Tente novamente.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conteúdo Principal (Escondido até logar) -->
+    <div id="main-content" class="max-w-6xl mx-auto hidden">
         <!-- Header -->
-        <div class="flex justify-between items-center mb-8">
+        <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
             <div>
                 <h1 class="text-3xl font-bold text-blue-500">NEXUS PRO</h1>
                 <p class="text-gray-400">Gerenciamento de Chaves & Autenticação</p>
             </div>
-            <div id="login-status" class="text-sm bg-green-900/30 text-green-400 px-3 py-1 rounded-full border border-green-800">
-                <i class="fas fa-shield-alt mr-2"></i>Admin Conectado
+            <div class="flex items-center gap-4">
+                <div class="text-sm bg-green-900/30 text-green-400 px-3 py-1 rounded-full border border-green-800">
+                    <i class="fas fa-shield-alt mr-2"></i>Admin Conectado
+                </div>
+                <button onclick="logout()" class="text-gray-400 hover:text-white text-sm underline">Sair</button>
             </div>
         </div>
 
         <!-- Stats Grid -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="card p-6 rounded-xl">
+            <div class="card p-6 rounded-xl shadow-lg">
                 <p class="text-gray-400 text-sm mb-1">Total de Chaves</p>
                 <h2 id="stat-total" class="text-3xl font-bold">0</h2>
             </div>
-            <div class="card p-6 rounded-xl">
+            <div class="card p-6 rounded-xl shadow-lg">
                 <p class="text-gray-400 text-sm mb-1">Total de Usos</p>
                 <h2 id="stat-uses" class="text-3xl font-bold">0</h2>
             </div>
-            <div class="card p-6 rounded-xl">
+            <div class="card p-6 rounded-xl shadow-lg">
                 <p class="text-gray-400 text-sm mb-1">Status da API</p>
                 <h2 class="text-3xl font-bold text-green-500">ONLINE</h2>
             </div>
         </div>
 
         <!-- Actions -->
-        <div class="card p-6 rounded-xl mb-8">
+        <div class="card p-6 rounded-xl mb-8 shadow-lg">
             <h3 class="text-xl font-bold mb-4">Gerar Nova Chave</h3>
             <div class="flex flex-wrap gap-4">
-                <select id="key-days" class="bg-slate-800 border border-slate-700 rounded px-4 py-2 outline-none focus:border-blue-500">
+                <select id="key-days" class="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 outline-none focus:border-blue-500">
                     <option value="0">Vitalícia</option>
                     <option value="1">1 Dia</option>
                     <option value="7">7 Dias</option>
                     <option value="30">30 Dias</option>
                 </select>
-                <input id="key-desc" type="text" placeholder="Descrição (ex: Cliente João)" class="bg-slate-800 border border-slate-700 rounded px-4 py-2 flex-1 outline-none focus:border-blue-500">
-                <button onclick="createKey()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded font-bold transition">
+                <input id="key-desc" type="text" placeholder="Descrição (ex: Cliente João)" class="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 flex-1 outline-none focus:border-blue-500">
+                <button onclick="createKey()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold transition">
                     <i class="fas fa-plus mr-2"></i>Gerar Key
                 </button>
             </div>
         </div>
 
         <!-- Keys Table -->
-        <div class="card rounded-xl overflow-hidden">
+        <div class="card rounded-xl overflow-hidden shadow-lg">
             <div class="p-6 border-b border-slate-700 flex justify-between items-center">
                 <h3 class="text-xl font-bold">Chaves Ativas</h3>
-                <button onclick="loadKeys()" class="text-blue-400 hover:text-blue-300"><i class="fas fa-sync-alt"></i></button>
+                <button onclick="loadKeys()" class="text-blue-400 hover:text-blue-300 transition"><i class="fas fa-sync-alt"></i> Atualizar</button>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left">
@@ -83,7 +111,7 @@
     </div>
 
     <script>
-        const ADMIN_PASS = prompt("Digite a senha administrativa:") || "admin123456";
+        let ADMIN_PASS = localStorage.getItem('nexus_admin_pass') || "";
 
         async function apiCall(endpoint, method = 'GET', body = null) {
             const options = {
@@ -95,25 +123,56 @@
             };
             if (body) options.body = JSON.stringify(body);
             const res = await fetch(endpoint, options);
+            if (res.status === 401) {
+                logout();
+                return { success: false, message: 'Sessão expirada' };
+            }
             return res.json();
+        }
+
+        async function attemptLogin() {
+            const input = document.getElementById('admin-pass-input').value;
+            const errorMsg = document.getElementById('login-error');
+            
+            // Testar a senha com uma chamada simples de stats
+            const res = await fetch('/api/admin/stats', {
+                headers: { 'admin-password': input }
+            });
+
+            if (res.ok) {
+                ADMIN_PASS = input;
+                localStorage.setItem('nexus_admin_pass', input);
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
+                loadKeys();
+            } else {
+                errorMsg.classList.remove('hidden');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('nexus_admin_pass');
+            location.reload();
         }
 
         async function loadKeys() {
             const data = await apiCall('/api/admin/keys');
             const stats = await apiCall('/api/admin/stats');
             
+            if (!data.success) return;
+
             document.getElementById('stat-total').innerText = data.keys.length;
             document.getElementById('stat-uses').innerText = stats.stats.total_uses || 0;
 
             const tbody = document.getElementById('keys-table');
             tbody.innerHTML = data.keys.map(k => `
                 <tr class="hover:bg-slate-800/30 transition">
-                    <td class="p-4 font-mono text-blue-400">${k.key}</td>
-                    <td class="p-4 text-sm">${k.expires_at ? new Date(k.expires_at).toLocaleDateString() : 'Vitalícia'}</td>
+                    <td class="p-4 font-mono text-blue-400 font-bold">${k.key}</td>
+                    <td class="p-4 text-sm">${k.expires_at ? new Date(k.expires_at).toLocaleDateString() : '<span class="text-green-500">Vitalícia</span>'}</td>
                     <td class="p-4">${k.uses}</td>
-                    <td class="p-4 text-xs text-gray-500">${k.hwid || 'Não vinculado'}</td>
+                    <td class="p-4 text-xs text-gray-500">${k.hwid || '<span class="italic">Aguardando...</span>'}</td>
                     <td class="p-4">
-                        <button onclick="deleteKey('${k.key}')" class="text-red-500 hover:text-red-400"><i class="fas fa-trash"></i></button>
+                        <button onclick="deleteKey('${k.key}')" class="text-red-500 hover:text-red-400 transition"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>
             `).join('');
@@ -124,7 +183,7 @@
             const description = document.getElementById('key-desc').value;
             const res = await apiCall('/api/admin/keys/create', 'POST', { days, description });
             if (res.success) {
-                alert("Chave criada: " + res.key);
+                alert("Chave criada com sucesso!");
                 loadKeys();
             }
         }
@@ -136,7 +195,23 @@
             }
         }
 
-        loadKeys();
+        // Auto-login se já tiver a senha salva
+        if (ADMIN_PASS) {
+            attemptLoginFromStorage();
+        }
+
+        async function attemptLoginFromStorage() {
+            const res = await fetch('/api/admin/stats', {
+                headers: { 'admin-password': ADMIN_PASS }
+            });
+            if (res.ok) {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
+                loadKeys();
+            } else {
+                logout();
+            }
+        }
     </script>
 </body>
 </html>
