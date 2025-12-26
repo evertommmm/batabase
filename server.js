@@ -8,10 +8,18 @@ const cors = require('cors');
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000; // Porta padrão do Render
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123456';
 
-app.use(cors());
+// ============================================
+// CONFIGURAÇÃO DE CORS (CRÍTICO PARA ROBLOX)
+// ============================================
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'admin-password']
+}));
+
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -45,15 +53,27 @@ const authAdmin = (req, res, next) => {
 // ============================================
 
 // Autenticar Chave com HWID
-app.post('/api/authenticate', (req, res) => {
+app.post(['/api/authenticate', '/api/autenticar'], (req, res) => {
     const { key, hwid } = req.body;
     
+    console.log(`[NEXUS] Tentativa de login: Key=${key} | HWID=${hwid}`);
+
     if (!key) return res.status(400).json({ success: false, message: 'Chave não fornecida' });
 
     db.get('SELECT * FROM keys WHERE key = ?', [key], (err, row) => {
-        if (err) return res.status(500).json({ success: false, message: 'Erro no banco de dados' });
-        if (!row) return res.status(404).json({ success: false, message: 'Chave inválida' });
-        if (row.status !== 'active') return res.status(403).json({ success: false, message: 'Chave banida ou inativa' });
+        if (err) {
+            console.error("[NEXUS DB ERROR]", err);
+            return res.status(500).json({ success: false, message: 'Erro no banco de dados' });
+        }
+        
+        if (!row) {
+            console.log(`[NEXUS] Chave inválida: ${key}`);
+            return res.status(404).json({ success: false, message: 'Chave inválida' });
+        }
+
+        if (row.status !== 'active') {
+            return res.status(403).json({ success: false, message: 'Chave banida ou inativa' });
+        }
 
         // Verificar Expiração
         if (row.expires_at && new Date(row.expires_at) < new Date()) {
@@ -62,6 +82,7 @@ app.post('/api/authenticate', (req, res) => {
 
         // Verificar HWID
         if (row.hwid && hwid && row.hwid !== hwid) {
+            console.log(`[NEXUS] HWID Incorreto para a chave ${key}`);
             return res.status(403).json({ success: false, message: 'HWID não condiz com a chave' });
         }
 
@@ -76,6 +97,7 @@ app.post('/api/authenticate', (req, res) => {
         db.run('INSERT INTO logs (action, key, status, details) VALUES (?, ?, ?, ?)', 
             ['auth', key, 'success', `Autenticado por ${hwid || 'N/A'}`]);
 
+        console.log(`[NEXUS] Login bem-sucedido: ${key}`);
         res.json({
             success: true,
             message: 'Autenticado com sucesso',
@@ -88,14 +110,12 @@ app.post('/api/authenticate', (req, res) => {
 // ENDPOINTS DO PAINEL ADMIN
 // ============================================
 
-// Listar Chaves
 app.get('/api/admin/keys', authAdmin, (req, res) => {
     db.all('SELECT * FROM keys ORDER BY created_at DESC', [], (err, rows) => {
         res.json({ success: true, keys: rows });
     });
 });
 
-// Criar Chave
 app.post('/api/admin/keys/create', authAdmin, (req, res) => {
     const { days, description } = req.body;
     const key = 'NEXUS-' + Math.random().toString(36).substr(2, 9).toUpperCase();
@@ -108,17 +128,15 @@ app.post('/api/admin/keys/create', authAdmin, (req, res) => {
         });
 });
 
-// Deletar Chave
 app.delete('/api/admin/keys/:key', authAdmin, (req, res) => {
     db.run('DELETE FROM keys WHERE key = ?', [req.params.key], (err) => {
         res.json({ success: true });
     });
 });
 
-// Estatísticas
 app.get('/api/admin/stats', authAdmin, (req, res) => {
     db.get('SELECT COUNT(*) as total, SUM(uses) as total_uses FROM keys', (err, row) => {
-        res.json({ success: true, stats: row });
+        res.json({ success: true, stats: row || { total: 0, total_uses: 0 } });
     });
 });
 
