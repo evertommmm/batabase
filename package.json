@@ -1,35 +1,15 @@
 {
-  "name": "nexus-alt-api",
+  "name": "nexus-supabase-api",
   "version": "1.0.0",
-  "description": "API de autenticação KeyAuth para Nexus Alt",
+  "description": "API de Autenticação com Supabase",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
-    "pm2-start": "pm2 start server.js --name nexus-alt-api",
-    "pm2-stop": "pm2 stop nexus-alt-api",
-    "pm2-restart": "pm2 restart nexus-alt-api",
-    "pm2-logs": "pm2 logs nexus-alt-api"
+    "start": "node server.js"
   },
-  "keywords": [
-    "keyauth",
-    "api",
-    "authentication",
-    "nexus"
-  ],
-  "author": "Nexus Developer",
-  "license": "MIT",
   "dependencies": {
+    "@supabase/supabase-client": "^2.39.0",
     "express": "^4.18.2",
-    "sqlite3": "^5.1.6",
     "cors": "^2.8.5",
-    "dotenv": "^16.0.3",
-    "uuid": "^9.0.0",
-    "bcryptjs": "^2.4.3",
-    "pm2": "^5.3.0"
-  },
-  "devDependencies": {
-    "nodemon": "^2.0.20",
-    "pm2": "^5.3.0"
+    "dotenv": "^16.3.1"
   }
 }
